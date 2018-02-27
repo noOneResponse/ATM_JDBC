@@ -1,5 +1,6 @@
 package com.feicuiedu.atm.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -17,15 +18,20 @@ public class UserService implements IService<User>{
 	 * @return
 	 */
 	public boolean hasCard(String card) {
+		
     	Object whereSql = " where  card = ? and userType = ?  ";
     	List<User> list = null;
     	userDao = new UserDao();
-    	try {
-    		list = userDao.queryUserMySql(new User(),whereSql,card,"1");
-		} catch (SQLException e) {
+    	
+		try {
+			
+			list = userDao.queryUserMySql(new User(),whereSql,card,"1");
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+				| InstantiationException | InvocationTargetException | NoSuchMethodException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
     	if(!(list==null||list.isEmpty())) {
     		return true;
     	}
@@ -38,16 +44,20 @@ public class UserService implements IService<User>{
 	 * @return 返回boolean
 	 */
     public boolean hasAccountOrCard(String account) {
+    	
     	Object whereSql = " where userType = ? and account = ? or card = ? ";
     	List<User> list = null;
     	userDao = new UserDao();
-    	try {
-    		list = userDao.queryUserMySql(new User(),whereSql,"1",account,account);
-			//System.out.println(list);
-		} catch (SQLException e) {
+    	
+		try {
+			
+			list = userDao.queryUserMySql(new User(),whereSql,"1",account,account);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+				| InstantiationException | InvocationTargetException | NoSuchMethodException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
     	if(!(list==null||list.isEmpty())) {
     		
     		return true;
@@ -60,16 +70,20 @@ public class UserService implements IService<User>{
      * @return
      */
     public boolean hasLockedAccountOrCard(String account) {
+    	
     	Object whereSql = " where userType = ? and account = ? or card = ? ";
     	List<User> list = null;
     	userDao = new UserDao();
-    	try {
-    		list = userDao.queryUserMySql(new User(),whereSql,"3",account,account);
-			//System.out.println(list);
-		} catch (SQLException e) {
+    	
+		try {
+			
+			list = userDao.queryUserMySql(new User(),whereSql,"3",account,account);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+				| InstantiationException | InvocationTargetException | NoSuchMethodException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
     	if(!(list==null||list.isEmpty())) {
     		
     		return true;
@@ -83,16 +97,22 @@ public class UserService implements IService<User>{
      * @return
      */
     public User getUserByLoginInfo(String account, String passwd,String userType) {
+    	
     	Object whereSql = " where account= ? and passwd = ? and userType = ? or card = ? ";
     	List<User> list = null;
     	userDao = new UserDao();
-    	try {
-    		list = userDao.queryUserMySql(new User(),whereSql,account,passwd,userType,account);
-		} catch (SQLException e) {
+    	
+		try {
+			
+			list = userDao.queryUserMySql(new User(),whereSql,account,passwd,userType,account);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+				| InstantiationException | InvocationTargetException | NoSuchMethodException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
     	if(!(list==null||list.isEmpty())) {
+    		
     		return list.get(0);
     	}
         return null;
@@ -108,24 +128,29 @@ public class UserService implements IService<User>{
     	Object whereSql = " where account = ? or card = ? ";
     	userDao = new UserDao();
     	List<User> list = null;
-    	
-    	try {
-    		
-    		list = userDao.queryUserMySql(new User(),whereSql,account,account);
-		} catch (SQLException e) {
+		try {
+			
+			list = userDao.queryUserMySql(new User(),whereSql,account,account);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+				| InstantiationException | InvocationTargetException | NoSuchMethodException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	if(list==null||list.isEmpty()) {
+    		
     		return null;
     	}
     	
         return list;
     }
 
-
-    @Override   //id,account,name,amount,gender,card,userType,passwd,birthday,address,remark
+    /* id,account,name,amount,gender,card,userType,passwd,birthday,address,remark
+     * (non-Javadoc)
+     * @see com.feicuiedu.atm.core.IService#create(java.lang.Object)
+     */
+    @Override  
     public void create(User user) {
+    	
     	userDao = new UserDao();
         try {
         	
@@ -148,70 +173,77 @@ public class UserService implements IService<User>{
 			e.printStackTrace();
 		}
     }
-
+    
     @Override
-    public void modify(User user,Object...objects) {
+	public void modify(User user,Object setValue,Object...objects) {
     	
     	userDao= new UserDao();
+    	Object whereSql = " where account = ? or card = ?";
+    	
     	try {
     		
-    		/**
-    		 * objects[0] 修改的数据的列名
-    		 * objects[1] 修改数据的内容
-    		 * objects[2] where条件account or card
-    		 */
-    		userDao.updateMySql(user, objects);
+    		userDao.updateMySql(user,setValue,whereSql,objects);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
-    
+    /*
+     * (non-Javadoc)
+     * @see com.feicuiedu.atm.core.IService#findAll(java.lang.String)
+     */
     @Override
     public List<User> findAll(String str) {
     	
-    	Object whereSql = null;
+    	Object whereSql = " where  userType = ? ";
     	List<User> list = null;
-    	
     	Object option = null;
     	
     	if("1".equals(str)) {
-    		whereSql = " where  userType = ? ";
+    		
     		option = "1";
     	} 
     	else if("2".equals(str)) {
-    		whereSql = " where  userType = ? ";
+    		
     		option = "2";
     	}
     	else if("3".equals(str)) {
-    		whereSql = " where  userType = ? ";
+    		
     		option = "3";
     	}
     	
     	userDao = new UserDao();
-    	try {
-    		
-    		list = userDao.queryUserMySql(new User(),whereSql,option);
-    		
-		} catch (SQLException e) {
+    	
+		try {
+			
+			list = userDao.queryUserMySql(new User(),whereSql,option);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+				| InstantiationException | InvocationTargetException | NoSuchMethodException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-        return list;
+		
+		if(list==null||list.isEmpty()) {
+    		
+    		return null;
+    	}
+    		
+		return list;
        
     }
-    /**
-     * 查找atm_user里面id的最大值
-     * @return
+    /*
+     * (non-Javadoc)
+     * @see com.feicuiedu.atm.core.IService#findMaxId()
      */
+    @Override
     public int findMaxId() {
     	
     	int maxId = 0;
     	userDao = new UserDao();
    
     	try {
-			maxId=userDao.queryMysqlMaxId(new User());
+    		
+			maxId=userDao.queryMysqlMaxId(new User(),"id");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -220,7 +252,7 @@ public class UserService implements IService<User>{
     	return maxId;
     }
     /**
-     *  账户状态 0：管理员 1：正常用户 2：销户 3：锁定
+     *  账户状态 0：管理员 1：正常用户 2：已销户用户 3：已锁定用户
      * @param userTypeIn
      * @return 返回与数据库中对应的中文表达
      */
@@ -228,15 +260,19 @@ public class UserService implements IService<User>{
 		
 		Object userType = null;
 		if("0".equals(userTypeIn)) {
+			
 			userType="管理员";
 		}
 		else if("1".equals(userTypeIn)) {
+			
 			userType="普通用户";
 		}
 		else if("2".equals(userTypeIn)) {
+			
 			userType="已销户用户";
 		}
 		else if("3".equals(userTypeIn)) {
+			
 			userType="已锁定用户";
 		}
 		
@@ -252,11 +288,14 @@ public class UserService implements IService<User>{
 		Object gender = null;
 		
 		if(1==genderIn) {
+			
 			gender="男";
 		}
 		else if(2==genderIn) {
+			
 			gender="女";
 		}
+		
 		return gender;
 	}
    

@@ -1,13 +1,13 @@
 package com.feicuiedu.atm;
 
-import com.feicuiedu.atm.service.TradeRecordService;
+import java.math.BigDecimal;
 
 public class MainTest {
 	
 	public static void main(String[] args) {
-		TradeRecordService tr = new TradeRecordService();
-		int a = tr.findMaxId();
-		System.out.println(a);
+		BigDecimal aa = new  BigDecimal("135.95");  
+		
+		System.out.println(aa);
 	}
 	
 }

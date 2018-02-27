@@ -15,6 +15,13 @@ public class AdminQueryDropUserView extends AbstractView{
 		UserService us = new UserService();
 		List<User> list = us.findAll("2");
 		
+		//如果没有查到相应资料则返回菜单
+		if(list==null||list.isEmpty()) {
+			
+			CommonUtils.printFromProperties("M112");
+			return CommonUtils.setDispatherPathReturnAbstractView("AdminMenuView");
+		}
+		
 		//主键|姓名|身份证号|性别|卡号|余额|状态
 		for(User user:list) {
 			

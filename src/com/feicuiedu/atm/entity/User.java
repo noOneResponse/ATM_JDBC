@@ -192,7 +192,4 @@ public class User {
 		
 		return account!=null ? account.hashCode() : 0;
 	}
-
-	
-	
 }

@@ -25,7 +25,7 @@ public class AdminUnlockUserView extends AbstractView{
 		List<User> list= us.inputAccountOrCardReturnUser(account);
 		User user = list.get(0);
 		
-		us.modify(user," userType ","1",account); 
+		us.modify(user," userType ","1",account,account); 
 		
 		CommonUtils.printFromProperties("M103");
 		

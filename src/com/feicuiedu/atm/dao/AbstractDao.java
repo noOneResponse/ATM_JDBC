@@ -12,13 +12,9 @@ import java.util.List;
 
 import com.feicuiedu.atm.anno.Column;
 import com.feicuiedu.atm.anno.Table;
-import com.feicuiedu.atm.entity.TradeRecord;
-import com.feicuiedu.atm.entity.User;
 import com.feicuiedu.atm.util.CommonUtils;
 
 public class AbstractDao<T> {
-	
-	
 	
 	/**
 	 * sql插入   用于向数据库新增数据
@@ -35,9 +31,9 @@ public class AbstractDao<T> {
 		// 表名
 		sbSql.append(table.value());
 		sbSql.append(" (");
-		Field[] fileds = tObj.getClass().getDeclaredFields();
+		Field[] fields = tObj.getClass().getDeclaredFields();
 		
-		for (Field field : fileds) {
+		for (Field field : fields) {
 			
 			//设置true可以反射出私有属性
 			field.setAccessible(true);
@@ -48,7 +44,7 @@ public class AbstractDao<T> {
 		sbSql.deleteCharAt(sbSql.length()-1);
 		sbSql.append(" ) values ( ");
 		
-		for (Field field : fileds) {
+		for (Field field : fields) {
 			
 			field.setAccessible(true);
 			sbSql.append("?, ");
@@ -63,42 +59,42 @@ public class AbstractDao<T> {
 		//下面链接数据库
 		Connection con = getMysqlConnection();
 		
-		try {
+		//获取执行的sql的PrepareStatement对象
+		PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
+		
+		int count = 1;
+		
+		//给preparedStatement的？赋值
+		for (Object value : objects) {
 			
-			//获取执行的sql的PrepareStatement对象
-			PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
-			
-			int count = 1;
-			
-			//给preparedStatement的？赋值
-			for (Object value : objects) {
-				
-				preparedStatement.setObject(count++, value);
-			}
-			
-			//执行sql语句，返回结果——新增
-			preparedStatement.executeUpdate();
-			
-			//关闭资源
-			preparedStatement.close();
-			con.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
+			preparedStatement.setObject(count++, value);
 		}
+		
+		//执行sql语句，返回结果——新增
+		preparedStatement.executeUpdate();
+		
+		//关闭资源
+		preparedStatement.close();
+		con.close();		
 	}
 	
-	/**
-	 * sql查询   根据条件查出具体的一条数据
-	 * @param tObj 与数据库表相对应的类的实例
-	 * @param objects  1.sql的where查询条件 2.查询条件max(id)或表内全部列
-	 * 				    
-	 * @return 根据条件查出的user对象  
-	 * @throws SQLException 
-	 */
+/**
+ * sql查询，用于查询数据库中对应的数据
+ * @param tObj	传入的T对象
+ * @param whereSql	含有？的where条件
+ * @param objects	对？赋值
+ * @return 返回符合查询条件的T对象
+ * @throws SQLException
+ * @throws IllegalArgumentException
+ * @throws IllegalAccessException
+ * @throws NoSuchFieldException
+ * @throws SecurityException
+ * @throws InstantiationException
+ * @throws InvocationTargetException
+ * @throws NoSuchMethodException
+ */
 	@SuppressWarnings("unchecked")
-	public List<T> queryUserMySql(T tObj,Object ...objects) throws SQLException {
+	public List<T> queryUserMySql(T tObj,Object whereSql,Object ...objects) throws SQLException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException, InstantiationException, InvocationTargetException, NoSuchMethodException {
 		
 		Table table = tObj.getClass().getAnnotation(Table.class);
 		
@@ -106,10 +102,8 @@ public class AbstractDao<T> {
 		
 		sbSql.append(" select ");
 		
-		Field[] fields = null;
-		
 		// 字段名/列名/属性名
-		fields = tObj.getClass().getDeclaredFields();
+		 Field[] fields = tObj.getClass().getDeclaredFields();
 		
 		for (Field field : fields) {
 			
@@ -121,176 +115,101 @@ public class AbstractDao<T> {
 			
 		}
 		sbSql.deleteCharAt(sbSql.length()-1);
-		
 
 		sbSql.append(" from ");
 		
 		//表名及where条件
-		sbSql.append(table.value()).append(" ").append(objects[0]);
+		sbSql.append(table.value()).append(" ").append(whereSql);
 		
 		//输出设计好的sql语句
 		//System.out.println(sbSql.toString());
 		
 		//下面链接数据库
-		Connection con = getMysqlConnection();
-
-		try {
+		Connection con = getMysqlConnection();	
 			
-			//获取执行sql的preparedStatement对象
-			PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
+		//获取执行sql的preparedStatement对象
+		PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
+		
+		int count = 1;
+		
+		//给preparedStatement的？赋值
+		for (Object value : objects) {
 			
-			for (int i = 1; i < objects.length; i++) {
-				
-				preparedStatement.setObject(i, objects[i]);
-			}
-			
-			//执行sql语句，返回结果——查询
-			ResultSet rs = preparedStatement.executeQuery();
-			
-			//boolean bln = rs.wasNull();
-			//System.out.println(bln);	
-			
-			//把查到的数据赋予到新的USer对象中
-			List<T> list = new ArrayList<>();			
-			
-			if("atm_user".equals(table.value())) {
-				
-				while(rs.next()) {
-					T t = null;
-					try {
-						t = (T) tObj.getClass().getDeclaredConstructor().newInstance();
-					} catch (InstantiationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (InvocationTargetException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (NoSuchMethodException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (SecurityException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					((User) t).setId(rs.getInt("id"));
-					((User) t).setAccount(rs.getString("account"));
-					((User) t).setName(rs.getString("user_name"));
-					((User) t).setAmount(rs.getDouble("amount"));
-					((User) t).setGender(rs.getInt("gender"));
-					((User) t).setCard(rs.getString("card"));
-					((User) t).setUserType(rs.getString("userType"));
-					((User) t).setPasswd(rs.getString("passwd"));
-					((User) t).setBirthday(rs.getDate("birthday"));
-					((User) t).setAddress(rs.getString("address"));
-					((User) t).setRemark(rs.getString("remark"));
-					 
-					 list.add(t);
-					 
-				}
-			}
-			if("trade_record".equals(table.value())) {
-				
-				while(rs.next()) {
-					
-					T t = null;
-					try {
-						t = (T) tObj.getClass().getDeclaredConstructor().newInstance();
-					} catch (InstantiationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (InvocationTargetException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (NoSuchMethodException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (SecurityException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					 ((TradeRecord) t).setId(rs.getInt("id"));
-					 ((TradeRecord) t).setAccount(rs.getString("account"));
-					 ((TradeRecord) t).setTargetAccount(rs.getString("targetAccount"));
-					 ((TradeRecord) t).setTradeType(rs.getInt("tradeType"));
-					 ((TradeRecord) t).setTradeDate(rs.getDate("tradeDate"));
-					 ((TradeRecord) t).setTradeAmount(rs.getDouble("tradeAmount"));
-					 ((TradeRecord) t).setAmount(rs.getDouble("amount"));
-					 
-					 list.add(t);
-				}
-				
-			}
-			
-			//关闭资源 先用的后关掉
-			rs.close();
-			preparedStatement.close();
-			con.close();
-			
-			//返回这个T对象
-			return list;
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
+			preparedStatement.setObject(count++, value);
 		}
 		
-		return null;
+		//执行sql语句，返回结果——查询
+		ResultSet rs = preparedStatement.executeQuery();
+		
+		//boolean bln = rs.wasNull();
+		//System.out.println(bln);	
+		
+		//把查到的数据赋予到新的USer对象中
+		List<T> list = new ArrayList<>();			
+			
+		while(rs.next()) {
+			
+			T t = (T)tObj.getClass().getDeclaredConstructor().newInstance();
+			
+			for (Field field : fields) {
+				
+				field = tObj.getClass().getDeclaredField(field.getName());	
+				//设置true可以反射出私有属性
+				field.setAccessible(true);
+				Column column = field.getAnnotation(Column.class);
+				field.set(t,rs.getObject(column.value()));
+			}
+			list.add(t);
+		}
+		
+		//关闭资源 先用的后关掉
+		rs.close();
+		preparedStatement.close();
+		con.close();
+		
+		//返回这个含有T对象的list
+		return list;		
 	}
 	
 	/**
-	 * 查找最大id
+	 * 查找最大select
 	 * @param tObj
 	 * @return
 	 * @throws SQLException 
 	 */
-	public int queryMysqlMaxId(T tObj) throws SQLException {
+	public int queryMysqlMaxId(T tObj,String select) throws SQLException {
 		
 		Table table = tObj.getClass().getAnnotation(Table.class);
 		StringBuilder sbSql = new StringBuilder();
-		sbSql.append("select max(id) from ") ;
+		sbSql.append("select max(");
+		sbSql.append(select);
+		sbSql.append(") from ");
 		sbSql.append(table.value());
-		
-		//System.out.println(sbSql.toString());
 		
 		Connection con = getMysqlConnection();
 		PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
 		ResultSet rs = preparedStatement.executeQuery();
 		
-		int maxId=0;
+		int maxSelect = 0;
 		
 		while(rs.next()) {
-			maxId=rs.getInt("MAX(id)");
+			maxSelect=rs.getInt("MAX("+select+")");
 		}
 		
 		rs.close();
 		preparedStatement.close();
 		con.close();
 		
-		return maxId;
+		return maxSelect;
 	}
 	
 	/**
 	 * sql更新   用于更新数据库数据
 	 * @param tObj 与数据库表相对应的类的实例
-	 * @param objects  1.需要更新数据的列名(passwd/amount/userType) 2.需要更新的数据 3.更新的账户{
-	 * 					objects[0] 修改的数据的列名
-	 * 					objects[1] 修改数据的内容
-	 * 					objects[2] where条件account or card
+	 * @param objects  
 	 * @throws SQLException 
 	 */
-	public void updateMySql(T tObj,Object ...objects) throws SQLException {
+	public void updateMySql(T tObj,Object setValue,Object whereSql,Object ...objects) throws SQLException {
 		
 		Table table = tObj.getClass().getAnnotation(Table.class);
 		
@@ -300,10 +219,11 @@ public class AbstractDao<T> {
 		sbSql.append(" update ").append(table.value()).append(" set ");
 		
 		//set的属性
-		sbSql.append(objects[0]+" = ? ");
+		sbSql.append(setValue);
+		sbSql.append(" = ? ");
 		
 		//where条件
-		sbSql.append(" where account = ? or card = ?");
+		sbSql.append(whereSql);
 		
 		//输出设计好的sql
 		//System.out.println(sbSql.toString());
@@ -311,42 +231,36 @@ public class AbstractDao<T> {
 		//下面链接数据库
 		Connection con = getMysqlConnection();
 		
-		try {
-			
-			//获取执行sql的preparedStatement对象
-			PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
-			
-			//给preparedStatement的？赋值
-			preparedStatement.setObject(1, objects[1]);
-			preparedStatement.setObject(2, objects[2]);
-			preparedStatement.setObject(3, objects[2]);
-			
-			//执行sql语句，返回结果——新增
-			preparedStatement.executeUpdate();
-			
-			//关闭资源
-			preparedStatement.close();
-			con.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-	}
-	
-	public Connection getMysqlConnection() {
+		//获取执行sql的preparedStatement对象
+		PreparedStatement preparedStatement = con.prepareStatement(sbSql.toString());
 		
-		String url = CommonUtils.getValueFromProp("Url");
-		String sqlUser = CommonUtils.getValueFromProp("SqlUser");
-		String sqlPasswd = CommonUtils.getValueFromProp("SqlPasswd");
-
-		Connection con = null;
-		try {
-			con = DriverManager.getConnection(url,sqlUser,sqlPasswd);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		//给preparedStatement的？赋值
+		int count = 1;
+		
+		for (Object value : objects) {
+			
+			preparedStatement.setObject(count++, value);
 		}
+		//执行sql语句，返回结果——新增
+		preparedStatement.executeUpdate();
+		
+		//关闭资源
+		preparedStatement.close();
+		con.close();
+			
+		
+	}
+	/**
+	 * 连接MySql数据库
+	 * @return
+	 * @throws SQLException
+	 */
+	public Connection getMysqlConnection() throws SQLException {
+		
+		String url = CommonUtils.getValueFromProp("url");
+		String sqlUser = CommonUtils.getValueFromProp("sqlUser");
+		String sqlPasswd = CommonUtils.getValueFromProp("sqlPasswd");
+		Connection con = DriverManager.getConnection(url,sqlUser,sqlPasswd);
 		
 		return con;
 	}

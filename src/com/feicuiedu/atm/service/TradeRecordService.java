@@ -1,5 +1,6 @@
 package com.feicuiedu.atm.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class TradeRecordService implements IService<TradeRecord>{
 	};
 	
 	@Override
-    public void modify(TradeRecord tradeRecord,Object...objects) {
+    public void modify(TradeRecord tradeRecord,Object o,Object...objects) {
     	
     };
     
@@ -46,7 +47,13 @@ public class TradeRecordService implements IService<TradeRecord>{
     	List<TradeRecord> list = null;
     	
     	try {
-    		list = tradeRecordDao.queryUserMySql(new TradeRecord(),WhereSql,account);
+    		try {
+				list = tradeRecordDao.queryUserMySql(new TradeRecord(),WhereSql,account);
+			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+					| InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -62,7 +69,7 @@ public class TradeRecordService implements IService<TradeRecord>{
     	tradeRecordDao = new TradeRecordDao();
    
     	try {
-			maxId=tradeRecordDao.queryMysqlMaxId(new TradeRecord());
+			maxId=tradeRecordDao.queryMysqlMaxId(new TradeRecord(),"id");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

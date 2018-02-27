@@ -59,8 +59,8 @@ public class UserTasferView extends AbstractView{
 		
 		user.setAmount(user.getAmount()-amount);
 		trasferedUser.setAmount(trasferedUser.getAmount()+amount);
-		us.modify(user,"amount",user.getAmount(),user.getAccount());
-		us.modify(trasferedUser,"amount",trasferedUser.getAmount(),trasferedUser.getAccount());
+		us.modify(user,"amount",user.getAmount(),user.getAccount(),user.getAccount());
+		us.modify(trasferedUser,"amount",trasferedUser.getAmount(),trasferedUser.getAccount(),trasferedUser.getAccount());
 		CommonUtils.printFromProperties("M005");
 		
 		TradeRecordService tradeRecordService = new TradeRecordService();

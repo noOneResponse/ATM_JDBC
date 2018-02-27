@@ -24,7 +24,7 @@ public class AdminDropUserView extends AbstractView{
 			 *objects[1] 修改数据的内容
 			 *objects[2] where条件account or card
 			 */
-			us.modify(thisUser," userType ","2",account);
+			us.modify(thisUser," userType ","2",account,account);
 			CommonUtils.printFromProperties("M102");
 			
 			return CommonUtils.setDispatherPathReturnAbstractView("AdminMenuView");

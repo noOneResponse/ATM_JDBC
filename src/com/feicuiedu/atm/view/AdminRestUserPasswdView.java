@@ -31,7 +31,7 @@ public class AdminRestUserPasswdView extends AbstractView {
 		CommonUtils.printFromProperties("C002");
 		String passwd = scr.next();
 		
-		us.modify(user," passwd ",passwd,account); 
+		us.modify(user," passwd ",passwd,account,account); 
 		
 		CommonUtils.printFromProperties("M103");
 		

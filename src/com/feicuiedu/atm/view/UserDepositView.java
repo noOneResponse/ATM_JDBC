@@ -33,6 +33,7 @@ public class UserDepositView extends AbstractView{
 		us.modify(user,
 				"amount",
 				user.getAmount(),
+				user.getAccount(),
 				user.getAccount()
 				);
 		

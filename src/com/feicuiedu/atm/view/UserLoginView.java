@@ -47,6 +47,7 @@ public class UserLoginView extends AbstractView{
 				us.modify(new User(),
 						" userType ",
 						"3",
+						account,
 						account
 						); 
 				CommonUtils.printFromProperties("M108");
